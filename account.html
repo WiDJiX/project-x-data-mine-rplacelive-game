@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Account | rplace</title>
+	<link rel="stylesheet" href="/reddit-modal.css">
+	<link rel="stylesheet" href="/reddit-modal-page.css">
+	<link rel="stylesheet" href="/shared.css">
+	<link rel="stylesheet" href="/account.css">
+	<!--Shared resources-->
+	<script type="module" src="/src/shared.js"></script>
+	<script type="module" src="/src/shared-elements.js" defer></script>
+	<!--Services-->
+	<script type="module" src="/src/services/account-manager.js" defer></script>
+	<!--Page scripts-->
+	<script type="module" src="/src/pages/account/account-elements.js" defer></script>
+	<script type="module" src="/src/pages/account/account.js" defer></script>
+</head>
+<body class="reddit-modal">
+	<div id="loginPanel" class="modal-content" data-page="loading">
+		<header class="header">
+			<h4 style="margin: 0px;">My account</h4>
+		</header>
+		<r-close-icon id="closeButton" class="active"></r-close-icon>
+		<div id="loadingPage" class="body" page="loading">
+			<div style="flex-grow: 1;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+				<h4>Authenticating</h4>
+				<img alt="Loading" src="/svg/loading-spinner.svg" width="64" height="64">
+			</div>
+		</div>
+		<div id="unauthedPage" class="body" page="unauthed" data-page="signin">
+			<div id="signinPage" class="section" page="signin">
+				<h4 style="margin: 0px;">Sign in</h4>
+				<form id="signinForm" class="section">
+					<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" maxlength="32"
+						minlength="4" required>
+					<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
+					<button type="submit" class="reddit-modal-button">Continue</button>
+				</form>
+				<p id="signinMessage" class="form-error"></p>
+			</div>
+			<div id="signupPage" class="section" page="signup">
+				<h4 style="margin: 0px;">Sign up</h4>
+				<form id="signupForm" class="section">
+					<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" minlength="4"
+						required>
+					<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
+					<input type="email" class="reddit-modal-input" placeholder="Confirm email*" name="confirmEmail"
+						required>
+					<button type="submit" class="reddit-modal-button">Continue</button>
+					<p id="signupMessage" class="form-error"></p>
+				</form>
+			</div>
+			<div id="authCodePage" class="section" page="authcode">
+				<div style="display: flex;align-items: center; column-gap: 8px; margin-bottom: 10px;">
+					<button type="button" onclick="unauthedPage.dataset.page='signin'"
+						style="display: inline; background: transparent; padding: 0px; box-shadow: none; border: none;">
+						<image alt="&lt;- Back" src="/svg/icon-back.svg"></image>
+					</button>
+					<h3 style="display: inline-block;">Email verification</h3>
+				</div>
+				<h4 style="margin: 0;">If you're lucky, an email has been sent to your inbox</h4>
+				<p>Enter the code sent below to authenticate your account</p>
+				<form id="verificationForm" class="section">
+					<input id="verificationCodeInput" name="code" type="text" maxlength="7" class="reddit-modal-input"
+						placeholder="Verification code*" required=""
+						style="display: block;height: 64px;font-size: 48px;text-align: center;">
+					<button type="submit" class="reddit-modal-button">Done</button>
+					<p id="verificationMessage" class="form-error"></p>
+				</form>
+			</div>
+			<div style="flex-grow: 1"><!--Spacer--></div>
+			<div class="section">
+				<h4 style="margin: 0;">Other options:</h4>
+				<a href="#signup" id="authToggleLink" translate="createNewAccount">
+					Create a new account
+				</a>
+				<div style="display: flex;column-gap: 8px;margin: 8px;">
+					<button type="button" class="reddit-signin-button" noselect disabled>
+						<img src="images/reddit.png" alt="Reddit" style="height: 100%;">
+						<span style="align-self: center;">Sign in with reddit</span>
+					</button>
+					<button type="button" class="reddit-signin-button" noselect disabled>
+						<img src="images/discord.png" alt="Discord" style="height: 100%;">
+						<span style="align-self: center;">Sign in with discord</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="body" page="profile">
+			<div class="body-header">
+				<h4 style="margin: 8px;">👤 Your rplace.live profile</h4>
+				<r-close-icon id="profileCloseButton"></r-close-icon>
+			</div>
+			<div class="section" style="flex-grow: 1;">
+				<div class="reddit-card">
+					<!-- Main profile area -->
+					<div class="reddit-card-header">
+						<div class="profile-picture">
+							<img id="profilePicture" alt="Avatar" src="images/default-avatar.png" width="256" height="256">
+								<button type="button" id="profilePictureButton" class="reddit-modal-button">
+									<img src="svg/edit.svg" alt="Edit">
+									Change
+								</button>
+								<input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+						</div>
+						<div style="min-width: 164px; flex-grow: 1;">
+							<h2 id="profileName"></h2>
+							<form id="profileBioForm">
+								<textarea id="profileBio"
+									placeholder="Start writing your biography (markdown supported)"></textarea>
+								<button type="submit" id="profileBioSubmit" class="profile-form-submit reddit-modal-button">
+									Update
+								</button>
+							</form>
+							<div class="horizontal-labeled-separator">
+								<span>Stats</span>
+								<hr>
+							</div>
+							<ul class="profile-stats">
+								<li>
+									<span>🎨 Pixels placed:</span>
+									<span id="profilePixels" class="stat-value"></span>
+								</li>
+								<li>
+									<span>📅 Joined:</span>
+									<span id="profileJoin" class="stat-value"></span>
+								</li>
+								<li>
+									<span>Badges:</span>
+									<span id="profileBadges" class="stat-value"></span>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- Connections -->
+					<div class="horizontal-labeled-separator">
+						<span>Connections</span>
+						<hr>
+					</div>
+					<div style="display: flex; flex-direction: column; row-gap: 4px;">
+						<details class="profile-details">
+							<summary>
+								<img width="16" height="16" src="images/rplace.png">
+								<span>Profiles:</span>
+								<ul id="profileCanvasUserList" class="profile-canvas-user-list"></ul>
+								<div class="details-edit reddit-modal-button">
+									Open
+									<img src="/svg/arrow-down.svg">
+								</div>
+							</summary>
+							<div>
+								<!--<h5 style="margin: 0;">Linked rplace canvas user profiles:</h5>-->
+								<form class="linked-profiles-form">
+									<label>
+										Find profiles:
+										<input type="text" class="reddit-modal-input" style="flex-grow: 1;" placeholder="Enter Chat Name, User ID or Canvas name">
+									</label>
+									<button type="submit" class="reddit-modal-button" style="padding: 6px;">Search</button>
+								</form>
+								<div id="profileCanvasUsers" class="profile-canvas-users-cards">
+									<!--Profile canvas user cards go here-->
+								</div>
+							</div>
+						</details>
+						<r-profile-details
+							icon="images/discord.png"
+							summary="Connect Discord"
+							label="Discord username"
+							placeholder="Enter Discord username">
+						</r-profile-details>
+						<r-profile-details
+							icon="images/reddit.png"
+							summary="Connect Reddit"
+							label="Reddit username"
+							placeholder="Enter Reddit username">
+						</r-profile-details>
+					</div>
+				</div>
+				<h4 style="margin: 0;">Account Details</h4>
+				<section class="section">
+					<detailsc class="account-details-item">
+						<summary>
+							<span class="summary-title">Account Tier: </span><span id="accountTier"></span>
+							<button class="reddit-modal-button details-edit" id="premiumButton" href="/premium">
+								Upgrade ✨
+							</button>
+						</summary>
+					</details>
+					<details class="account-details-item">
+						<summary>
+							<span class="summary-title">Email: </span><span id="accountEmail"></span>
+						</summary>
+					</details>
+				</section>
+				<div style="flex-grow: 1;"><!-- Spacer --></div>
+				<!--<a href="/instance" style="opacity: 0.6; pointer-events: none;">Instances: Go to instance manager</a>-->
+				<h4 style="margin: 0;">Danger zone</h4>
+				<div>
+					<button id="logoutButton" type="button" class="reddit-modal-button">Logout</button>
+					<button id="deleteAccountButton" type="button" class="reddit-modal-button"
+						style="background-color: lightcoral;">Delete account</button>
+				</div>
+			</div>
+		</div>
+		<div id="errorPage" class="body" page="error">
+			<p id="errorMessage" class="form-error"></p>
+			<a href="">Try again</a>
+		</div>
+	</div>
+</body>
+</html>

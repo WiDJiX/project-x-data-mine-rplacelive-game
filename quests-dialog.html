@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quests | rplace</title>
+	<link rel="apple-touch-icon" href="favicon.ico">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" href="/reddit-modal.css">
+	<link rel="stylesheet" href="/reddit-modal-page.css">
+	<!--Shared resources-->
+	<script type="module" src="/src/shared.js"></script>
+	<script type="module" src="/src/shared-elements.js" defer></script>
+</head>
+<body class="reddit-modal">
+	<div class="modal-content">
+		<header class="header">
+			<h4 style="margin: 0px;">Quests</h4>
+		</header>
+		<main class="body">
+			<h1>Quest complete! 🥳</h1>
+			<p id="questsDescription"><!-- Quests description content --></p>
+			<img alt="trophy" src="images/trophy.png" height="256" style="object-fit: contain;">
+			<div style="flex-grow: 1;"><!-- Spacer --></div>
+			<button type="button" class="reddit-modal-button" onclick="window.parent.postMessage({ call: 'closeQuestsFrame' })">Close</button>
+		</main>
+		<r-close-icon onclick="window.parent.postMessage({ call: 'closeQuestsFrame' })" tabindex="0"></r-close-icon>
+	</div>
+</body>
+</html>

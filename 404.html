@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Custom canvas (404) | rplace</title>
+	<link rel="apple-touch-icon" href="favicon.ico">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" href="/shared.css">
+	<link rel="stylesheet" href="/reddit-modal.css">
+	<link rel="stylesheet" href="/reddit-modal-page.css">
+	<script type="module" src="/src/shared.js"></script>
+	<script>
+		// Window redirects
+		const REDIRECTS = {
+			"/discord": "https://discord.com/invite/xbRrVSXJdZ",
+			"/twitter": "https://x.com/rplacelive",
+			"/x": "https://x.com/rplacelive",
+			"/reddit": "https://www.reddit.com/r/placetk",
+			"/github": "https://github.com/rplacelive",
+			"/telegram": "https://t.me/rplacelive",
+			"/admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+			"/wiki": "https://wiki.rplace.live",
+			"/instagram": "https://instagram.com/rplacelive"
+		};
+
+		let path = window.location.pathname
+		if (path.length > 1 && path.endsWith("/"))
+			path = path.slice(0, -1)
+
+		const target = REDIRECTS[path]
+		if (target) {
+			window.location.replace(target)
+		}
+
+		// Vanity lookup
+		async function getVanityInstance(name) {
+			try {
+				const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
+				if (!response.ok) return null
+				const instanceInfo = await response.json()
+				return instanceInfo
+			}
+			catch(e) {
+				return null
+			}
+		}
+		let vanityRequestFinished = false
+		;(async function() {
+			const info = await getVanityInstance(urlName)
+			if (info !== null) {
+				const protocol = info.usesHttps ? "https://" : "http://"
+				const wsProtocol = info.usesHttps ? "wss://" : "ws://"
+				const filesLocation = info.legacy ? info.serverLocation : info.fileServerLocation
+				const newLocation = `${window.location.origin}/?server=${wsProtocol}${info.serverLocation}&board=${protocol}${filesLocation}/place`
+				window.location.replace(newLocation)
+			}
+			else {
+				window.addEventListener("DOMContentLoaded", async function(e) {
+					const overlay = document.getElementById("overlay")
+					overlay?.remove()
+				})
+			}
+			vanityRequestFinished = true
+		})();
+	</script>
+</head>
+<body class="reddit-modal">
+	<div id="overlay" class="page-cover">
+		<img alt="rplace logo" class="spinner" src="images/rplace.png">
+		<span style="font-size: 10px; opacity: 0.4;">rplace.live</span>
+		<h3 style="margin: 0px;">Loading custom canvas...</h3>
+	</div>
+	<div class="modal-content">
+		<header class="header">
+			<h4 style="margin: 0px;">Make a new rplace canvas</h4>
+		</header>
+		<main class="body">
+			<p>Create your own custom rplace canvas, with your own rules, a special vanity URL,
+				and custom features. For friends, drawing by yourself, or whole build teams!</p>
+			<input id="vanity" type="text" class="reddit-modal-input" required placeholder="Vanity name (unique)" maxlength="32">
+			<input id="cooldown" type="number" class="reddit-modal-input" required min="0" max="4294967" placeholder="Canvas cooldown (seconds)">
+			<input id="width" type="number" class="reddit-modal-input" required min="1" max="8192" placeholder="Canvas width (pixels)">
+			<input id="height" type="number" class="reddit-modal-input" required min="1" max="8192" placeholder="Canvas height (pixels)">
+			<label>
+				Import canvas from image file:
+				<input type="file" style="height: 24px;">	
+			</label>
+			<div style="flex-grow: 1"></div>
+			<button type="button" id="createButton" class="reddit-modal-button">Finish creating canvas!</button>
+		</main>
+	</div>
+</body>
+<script defer>
+	const DISALLOWED_VANITIES = [ "index", "index.html", "disclaimer", "disclaimer.html", "fakeapp", "fakeapp.html",
+		"instance", "instance.html", "posts", "posts.html", "404", "404.html" ]
+
+	vanity.addEventListener("input", async function(e) {
+		const name = vanity.value = vanity.value.replace(" ", "-").replace("--", "-")
+				.replace("__", "_").replace("..", ".").replace(/[^\p{L}\d_.-]/gu, "")
+
+		if (!vanityRequestFinished) {
+			return
+		}
+		vanityRequestFinished = false
+
+		if (!name || DISALLOWED_VANITIES.includes(name)) {
+			vanity.setCustomValidity("This vanity name is invalid")
+			vanity.style.border = "1px solid red"
+		}
+		else {
+			const info = await getVanityInstance(name)
+			if (info) {
+				vanity.setCustomValidity("This vanity name has already been taken")
+				vanity.style.border = "1px solid red"
+			}
+			else {
+				vanity.setCustomValidity("")
+				vanity.style.border = "1px solid green"
+			}
+		}
+
+		vanity.reportValidity()
+		vanityRequestFinished = true
+	})
+
+	createButton.addEventListener("click", function(e) {
+		let allValid = true
+		if (!cooldown.checkValidity()) {
+			if (cooldown.validity.rangeUnderflow) {
+				cooldown.setCustomValidity("Cooldown must be greater than 0")	
+			}
+			else if (cooldown.validity.rangeOverflow) {
+				cooldown.setCustomValidity("Cooldown must be less than 4294967")
+			}
+			cooldown.style.border = "1px solid red"
+			cooldown.reportValidity()
+			allValid = false
+		}
+		else {
+			cooldown.style.border = "1px solid green"
+		}
+		if (!width.checkValidity()) {
+			if (width.validity.rangeUnderflow) {
+				width.setCustomValidity("Canvas width must be greater than 0")	
+			}
+			else if (width.validity.rangeOverflow) {
+				width.setCustomValidity("Canvas width must be less than 4294967")
+			}
+			width.style.border = "1px solid red"
+			width.reportValidity()
+			allValid = false
+		}
+		else {
+			width.style.border = "1px solid green"
+		}
+		if (!height.checkValidity()) {
+			if (height.validity.rangeUnderflow) {
+				height.setCustomValidity("Canvas height must be greater than 0")	
+			}
+			else if (height.validity.rangeOverflow) {
+				height.setCustomValidity("Canvas height must be less than 4294967")
+			}
+			height.style.border = "1px solid red"
+			height.reportValidity()
+			allValid = false
+		}
+		else {
+			height.style.border = "1px solid green"
+		}
+		if (allValid) {
+			window.location = `${window.location.origin}/instance.html?builder=true&name=${name.value}&cooldown=${cooldown.value}&width=${width.value}&height=${height.value}`
+		}
+	})
+</script>
+</html>
